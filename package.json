@@ -1,0 +1,14 @@
+{
+  "name": "quiz-bot",
+  "version": "1.0.0",
+  "description": "A bot that plays quiz games using Ollama",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "playwright": "^1.42.1",
+    "dotenv": "^16.4.5"
+  }
+} 
