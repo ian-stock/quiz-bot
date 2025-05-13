@@ -63,7 +63,6 @@ The bot will:
 ## Debugging
 
 - The bot creates detailed logs in both the terminal and browser console
-- If there's an error clicking elements, it saves a screenshot as `error-screenshot.png`
 - You can close the browser window at any time to stop the bot
 
 ## Files
