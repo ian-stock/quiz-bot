@@ -27,9 +27,17 @@ npm install
 
 4. Create a `.env` file in the root directory and add your configuration:
 ```
+# Required variables
 QUIZ_URL=https://quiz.iattend.uk/
 QUIZ_EMAIL=your_email_here
 QUIZ_PINCODE=your_pincode_here
+
+# Optional variables
+LOG_LEVEL=ALL_LOGS  # Options: ALL_LOGS, AI_LOGS, NO_LOGS
+AI_MODEL=OLLAMA     # Options: OLLAMA, CHATGPT
+
+# Required only if using CHATGPT model
+OPENAI_API_KEY=your_api_key_here  # Required if AI_MODEL=CHATGPT
 ```
 
 ## Usage
