@@ -1,33 +1,41 @@
 # Quiz Bot
 
-A Node.js bot that automatically plays web-based quiz games using Playwright and ChatGPT.
+A Node.js bot that automatically plays web-based quiz games using Playwright for browser automation and Ollama's Mistral model for answering questions.
+
+## Prerequisites
+
+1. Node.js 16 or higher
+2. [Ollama](https://ollama.ai/) installed on your system
+3. Mistral model pulled in Ollama
 
 ## Setup
 
-1. Install dependencies:
+1. Install Ollama if you haven't already:
+   - Visit https://ollama.ai/
+   - Download and install for your system
+   - Verify installation by running `ollama list` in terminal
+
+2. Pull the Mistral model:
+```bash
+ollama pull mistral
+```
+
+3. Install project dependencies:
 ```bash
 npm install
 ```
 
-2. Install Playwright browsers:
-```bash
-npx playwright install chromium
+4. Create a `.env` file in the root directory and add your configuration:
 ```
-
-3. Create a `.env` file in the root directory and add your configuration:
-```
-OPENAI_API_KEY=your_api_key_here
-QUIZ_URL=your_quiz_url_here
+QUIZ_URL=https://quiz.iattend.uk/
 QUIZ_EMAIL=your_email_here
 QUIZ_PINCODE=your_pincode_here
 ```
 
-4. Modify the `index.js` file to update:
-   - The CSS selectors for questions (`.question`), options (`.option`), and submit button (`#submit-button`) to match your quiz page structure
-
 ## Usage
 
-Run the bot:
+1. Make sure Ollama is running on your system
+2. Run the bot:
 ```bash
 npm start
 ```
@@ -35,15 +43,39 @@ npm start
 The bot will:
 1. Open a browser window (so you can see what's happening)
 2. Navigate to the quiz page
-3. For each question:
+3. Log in with your credentials
+4. Wait for the quiz to start (Join button)
+5. For each question:
    - Read the question and options
-   - Send them to ChatGPT for analysis
+   - Send them to Mistral for analysis
    - Click the suggested answer
    - Submit the answer
    - Move to the next question
 
-## Requirements
+## Debugging
 
-- Node.js 16 or higher
-- An OpenAI API key
-- Internet connection 
+- The bot creates detailed logs in both the terminal and browser console
+- If there's an error clicking elements, it saves a screenshot as `error-screenshot.png`
+- You can close the browser window at any time to stop the bot
+
+## Files
+
+- `index.js` - Main bot script
+- `.env` - Configuration file (not in git)
+- `package.json` - Project dependencies
+- `.gitignore` - Git ignore rules
+
+## Development
+
+The project uses:
+- Playwright for browser automation
+- Ollama's Mistral model for question answering
+- Node.js native fetch for Ollama API calls
+- dotenv for environment variable management
+
+## Notes
+
+- The bot runs in headed mode so you can see what it's doing
+- It will automatically clean up when you close the browser window
+- Mistral runs locally, so no API keys are needed
+- The quiz answers are processed completely offline 
