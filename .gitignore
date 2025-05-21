@@ -43,6 +43,8 @@ coverage
 
 # Debug files
 error-screenshot.png
+debug-question.png
+success-submission.png
 
 # Optional npm cache directory
 .npm
@@ -62,4 +64,10 @@ error-screenshot.png
 # Playwright
 /test-results/
 /playwright-report/
-/playwright/.cache/ 
+/playwright/.cache/
+
+# Debug screenshots
+*.png
+
+# OS files
+Thumbs.db 

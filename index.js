@@ -1,6 +1,8 @@
 import { chromium } from 'playwright';
 import dotenv from 'dotenv';
-import { setTimeout } from 'timers/promises';
+import { setTimeout as sleep } from 'timers/promises';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 // Load environment variables
 dotenv.config();
@@ -44,6 +46,51 @@ if (!Object.values(AI_MODELS).includes(aiModel)) {
 if (aiModel === AI_MODELS.CHATGPT && !process.env.OPENAI_API_KEY) {
   console.error('OPENAI_API_KEY is required when using CHATGPT model');
   process.exit(1);
+}
+
+const execAsync = promisify(exec);
+
+async function checkAndStartOllama() {
+  try {
+    // Check if Ollama is running by making a request to its API
+    const response = await fetch('http://localhost:11434/api/tags');
+    if (response.ok) {
+      console.log('✅ Ollama is running');
+      // Start the llama3.2 model in the background
+      exec('ollama run llama3.2 &');
+      return true;
+    }
+  } catch (error) {
+    console.log('❌ Ollama is not running, attempting to start it...');
+    
+    try {
+      // On macOS, try to start Ollama using the app
+      await execAsync('open -a Ollama');
+      
+      // Wait for Ollama to start (retry a few times)
+      let retries = 5;
+      while (retries > 0) {
+        try {
+          await sleep(2000); // Wait 2 seconds
+          const checkResponse = await fetch('http://localhost:11434/api/tags');
+          if (checkResponse.ok) {
+            console.log('✅ Ollama started successfully');
+            // Start the llama3.2 model in the background
+            exec('ollama run llama3.2 &');
+            return true;
+          }
+        } catch (e) {
+          retries--;
+          if (retries === 0) throw new Error('Failed to start Ollama after multiple attempts');
+        }
+      }
+    } catch (startError) {
+      console.error('Failed to start Ollama:', startError.message);
+      console.error('Please start Ollama manually and try again');
+      process.exit(1);
+    }
+  }
+  return false;
 }
 
 // Helper function to log both to terminal and browser console
@@ -181,7 +228,7 @@ async function handleQuizLogin(page) {
     await log(page, 'Submitted login credentials');
 
     // Wait a moment for the login to complete
-    await setTimeout(2000);
+    await sleep(2000);
   } catch (error) {
     await log(page, `Error during login process: ${error.message}`, 'error');
     throw error;
@@ -209,13 +256,18 @@ async function waitForElementWithRetry(page, selector, options = {}) {
         throw error;
       }
       await log(page, `Attempt ${attempt} failed, retrying...`);
-      await setTimeout(1000); // Wait 1 second between attempts
+      await sleep(1000); // Wait 1 second between attempts
     }
   }
   throw new Error(`Failed to find element "${selector}" after ${maxAttempts} attempts`);
 }
 
 async function runQuizBot() {
+  // Check and start Ollama before proceeding
+  if (aiModel === AI_MODELS.OLLAMA) {
+    await checkAndStartOllama();
+  }
+
   let browser;
   let page;
   try {
@@ -226,8 +278,10 @@ async function runQuizBot() {
 
     // Listen to all browser console logs
     page.on('console', msg => {
-      const type = msg.type();
-      console.log(`[Browser Console] ${type}: ${msg.text()}`);
+      if (logLevel === LOG_LEVELS.ALL_LOGS) {
+        const type = msg.type();
+        console.log(`[Browser Console] ${type}: ${msg.text()}`);
+      }
     });
 
     // Listen for page close event
@@ -333,7 +387,7 @@ async function runQuizBot() {
             await page.screenshot({ path: 'success-submission.png' });
             
             // Wait a bit longer before next question
-            await setTimeout(3000);
+            await sleep(3000);
           } catch (clickError) {
             await log(page, `Error clicking elements: ${clickError.message}`, 'error');
             await page.screenshot({ path: 'error-screenshot.png' });
@@ -363,7 +417,7 @@ async function runQuizBot() {
           // Try to recover by refreshing the page
           await log(page, 'Attempting to recover by refreshing the page...');
           await page.reload();
-          await setTimeout(5000); // Wait 5 seconds after refresh
+          await sleep(5000); // Wait 5 seconds after refresh
           continue; // Try again from the beginning
         }
         await log(page, `Error during quiz: ${error.message}`, 'error');
